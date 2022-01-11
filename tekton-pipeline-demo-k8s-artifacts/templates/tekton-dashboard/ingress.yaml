@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/group.name: dashboard
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/tags: Project=tekton-pipeline-demo
+    alb.ingress.kubernetes.io/security-groups: {{ .Values.dashboard.ingress.securityGroup }}
+  name: tekton-dashboard
+  namespace: tekton-pipelines
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: tekton-dashboard
+          servicePort: 9097
+        path: /*

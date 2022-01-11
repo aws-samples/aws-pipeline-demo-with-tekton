@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tekton-demo-app-deploy
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://git-codecommit.eu-central-1.amazonaws.com/v1/repos/tekton-demo-app-deploy
+    targetRevision: master
+    path: ./
+    helm:
+      valueFiles:
+      - ./values.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps

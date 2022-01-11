@@ -1,0 +1,15 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: codecommit-trigger-binding
+  namespace: apps-build
+spec:
+  params:
+  - name: gitrevision
+    value: $(body.commit)
+  - name: gitbranch
+    value: $(body.branch)
+  - name: gitrepositoryname
+    value: $(body.repo-name)
+  - name: gitrepositoryregion
+    value: $(body.repo-region)

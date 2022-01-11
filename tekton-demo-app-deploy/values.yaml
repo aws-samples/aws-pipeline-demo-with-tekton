@@ -1,0 +1,18 @@
+helm-springboot:
+  stage: stage # either devl, test, acpt or prod
+  replicaCount: 1
+  app:
+    name: tekton-demo-app
+    namespace: apps # k8s namespace where the application runs
+  image:
+    name: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/tekton-demo-app:f264f3b
+    pullPolicy: Always
+  service:
+    type: NodePort
+    port: 8080
+  env:
+    - name: VARIABLE
+      value: my-value
+  ingress:
+    enabled: true
+    sg: ${TEKTON_DEMO_APP_SG}

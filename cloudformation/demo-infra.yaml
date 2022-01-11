@@ -1,0 +1,214 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "This cloudformation template creates all resources required for the Tekton pipeline demo"
+
+Parameters:
+  TektonDemoSourceBucket:
+    Type: String
+    Description: "Name of the bucket which contains the source code for the demo"
+  TektonDemoClusterSubnets:
+    Type: String
+    Description: "EKS cluster private subnets identifiers"
+  TektonDemoClusterVpc:
+    Type: String
+    Description: "EKS cluster vpc identifier"
+  AllowedIpAddress:
+    Type: String
+    Description: "Client ip address"
+
+Resources:
+  TektonDemoBuildRepo:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: "tekton-demo-app-build"
+      Triggers:
+        - Name: LambdaFunctionTrigger
+          Events: 
+            - "all"
+          Branches:
+            - "master"
+          CustomData: "tekton-demo-app-build"
+          DestinationArn: !GetAtt TektonDemoWebhookFunction.Arn
+      Code: 
+        BranchName: master
+        S3:
+          Bucket: !Ref TektonDemoSourceBucket
+          Key: tekton-pipeline-demo-app-code.zip
+      Tags:
+        - Key: project
+          Value: tekton-pipeline-demo
+
+  TektonDemoDeployRepo:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: "tekton-demo-app-deploy"
+      Code: 
+        BranchName: master
+        S3:
+          Bucket: !Ref TektonDemoSourceBucket
+          Key: tekton-pipeline-demo-deploy-code.zip
+      Tags:
+        - Key: project
+          Value: tekton-pipeline-demo
+  
+  TektonDemoArtifactDomain:
+    Type: AWS::CodeArtifact::Domain
+    Properties:
+      DomainName: tekton-demo-domain
+      Tags:
+        - Key: project
+          Value: tekton-pipeline-demo
+  
+  TektonDemoArtifactUpstream:
+    Type: AWS::CodeArtifact::Repository
+    Properties:
+      DomainName: !GetAtt TektonDemoArtifactDomain.Name
+      RepositoryName: maven-central-store
+      ExternalConnections:
+        - public:maven-central
+      Tags:
+        - Key: project
+          Value: tekton-pipeline-demo
+
+  TektonDemoArtifactRepo:
+    Type: AWS::CodeArtifact::Repository
+    Properties:
+      DomainName: !GetAtt TektonDemoArtifactDomain.Name
+      RepositoryName: tekton-demo-repository
+      Upstreams:
+        - !GetAtt TektonDemoArtifactUpstream.Name
+      Tags:
+        - Key: project
+          Value: tekton-pipeline-demo
+
+  TektonDemoImageRepo:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: "tekton-demo-app"
+      Tags:
+        - Key: project
+          Value: tekton-pipeline-demo
+  
+  TektonDemoImageClonerRepo:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: "cloner"
+      Tags:
+        - Key: project
+          Value: tekton-pipeline-demo
+  
+  TektonDemoImageMavenBuilderRepo:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: "maven-builder"
+      Tags:
+        - Key: project
+          Value: tekton-pipeline-demo
+
+  TektonDemoWebhookRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: 
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+  TektonDemoWebhookPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TektonDemoWebhookFunction
+      Principal: codecommit.amazonaws.com	
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !GetAtt TektonDemoBuildRepo.Arn
+
+  TektonDemoWebhookFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: TektonPipelineDemoWebhook
+      Code:
+        S3Bucket: !Ref TektonDemoSourceBucket
+        S3Key: tekton-pipeline-demo-webhook-code.zip
+      Handler: tekton-webhook-middleware
+      Runtime: go1.x
+      Role: !GetAtt TektonDemoWebhookRole.Arn
+      VpcConfig:
+        SecurityGroupIds:
+          - !GetAtt TektonDemoWebhookSecurityGroup.GroupId
+        SubnetIds:
+          - !Select [ 0, !Split [ ",", !Ref TektonDemoClusterSubnets ] ]
+          - !Select [ 1, !Split [ ",", !Ref TektonDemoClusterSubnets ] ]
+          - !Select [ 2, !Split [ ",", !Ref TektonDemoClusterSubnets ] ]
+      Tags:
+        - Key: project
+          Value: tekton-pipeline-demo
+
+  TektonDemoWebhookSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref TektonDemoClusterVpc
+      GroupDescription: "sg"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 192.168.0.0/16
+      
+  TektonDemoChartmuseumSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref TektonDemoClusterVpc
+      GroupDescription: "sg"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 192.168.0.0/16
+
+  TektonDemoDashboardSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref TektonDemoClusterVpc
+      GroupDescription: "sg"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Sub "${AllowedIpAddress}/32"
+
+  TektonDemoAppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref TektonDemoClusterVpc
+      GroupDescription: "sg"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Sub "${AllowedIpAddress}/32"
+
+Outputs:
+  AppSecurityGroup:
+    Description: ""
+    Value: !GetAtt TektonDemoAppSecurityGroup.GroupId
+  WebhookSecurityGroup:
+    Description: ""
+    Value: !GetAtt TektonDemoWebhookSecurityGroup.GroupId
+  DashboardSecurityGroup:
+    Description: ""
+    Value: !GetAtt TektonDemoDashboardSecurityGroup.GroupId
+  ChartmuseumSecurityGroup:
+    Description: ""
+    Value: !GetAtt TektonDemoChartmuseumSecurityGroup.GroupId
+  WebhookFunctionName:
+    Description: ""
+    Value: !Ref TektonDemoWebhookFunction

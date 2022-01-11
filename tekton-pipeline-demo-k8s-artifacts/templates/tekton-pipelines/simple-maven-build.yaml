@@ -1,0 +1,61 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: simple-maven-build
+  namespace: apps-build
+spec:
+  workspaces:
+    - name: artifact-store
+  params:
+    - name: branch
+      type: string
+      description: "Git url"
+    - name: revision
+      type: string
+      description: "Git revision"
+    - name: repositoryurl
+      type: string
+      description: "Name of the repository"
+  tasks:
+    - name: git-clone
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: source
+          workspace: artifact-store
+      params:
+        - name: repositoryurl
+          value: $(params.repositoryurl)
+        - name: revision
+          value: $(params.revision)
+        - name: branch
+          value: $(params.branch)
+    - name: maven-build
+      taskRef:
+        name: maven-build
+      runAfter: ["git-clone"]
+      params:
+        - name: GOALS
+          value: "deploy"
+        - name: version
+          value: "$(tasks.git-clone.results.built-image-tag)"
+      workspaces:
+        - name: source
+          workspace: artifact-store
+    - name: docker-build
+      taskRef:
+        name: docker-build
+      runAfter: ["git-clone", "maven-build"]
+      params:
+        - name: commitshashort
+          value: "$(tasks.git-clone.results.built-image-tag)"
+      workspaces:
+        - name: source
+          workspace: artifact-store
+    - name: deploy
+      taskRef:
+        name: deploy
+      runAfter: ["git-clone", "maven-build", "docker-build"]
+      params:
+        - name: imageurl
+          value: {{ .Values.accountId }}.dkr.ecr.{{ .Values.region }}.amazonaws.com/tekton-demo-app:$(tasks.git-clone.results.built-image-tag)

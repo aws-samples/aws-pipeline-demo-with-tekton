@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}
+  namespace: {{ .Values.app.namespace }}
+  labels:
+    app: {{ .Values.app.name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.app.name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.app.name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Values.app.name }}
+          image: {{ .Values.image.name }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            runAsUser: 999
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          {{- with .Values.additionalVolumeMounts }}
+          volumeMounts:
+          {{- toYaml . | trim | nindent 12 }}
+          {{- end }}
+      volumes:
+      - emptyDir: {}
+        name: keystore-volume
+      {{- with .Values.additionalVolumes }}
+      {{- range . }}
+      - name: {{ .name }}
+      {{- if eq .type "pvc" }}
+        persistentVolumeClaim:
+          claimName: {{ .sourceName }}
+      {{- else if eq .type "cm" }}
+        configMap:
+          name: {{ .sourceName }}
+      {{- end }}
+      {{- end }}
+      {{- end }}

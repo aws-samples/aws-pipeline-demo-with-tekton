@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dockerfile
+  namespace: apps-build
+data:
+  Dockerfile: |
+    FROM openjdk:8-jre-alpine
+    COPY target/tekton-demo-*.jar /opt/app.jar
+    EXPOSE 8080
+    ENTRYPOINT ["sh", "-c", "java -jar /opt/app.jar"]

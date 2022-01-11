@@ -1,0 +1,52 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy
+  namespace: apps-build
+spec:
+  params:
+  - name: repositoryurl
+    description: ""
+    type: string
+    default: git-codecommit.{{ .Values.region }}.amazonaws.com/v1/repos/tekton-demo-app-deploy
+  - name: imageurl
+    description: Image url 
+    type: string
+  steps:
+    - name: auto-deploy-to-devl
+      image: {{ .Values.accountId }}.dkr.ecr.{{ .Values.region }}.amazonaws.com/cloner:latest
+      env:
+      - name: GIT_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: codecommit-credentials
+            key: username
+      - name: GIT_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: codecommit-credentials
+            key: password
+      script: |
+        #!/usr/bin/env bash
+
+        wget https://github.com/mikefarah/yq/releases/download/v4.2.0/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
+
+        git config --global user.name "Tekton Bot"
+        git config --global user.email "tekton@amazon.com"
+
+        git clone "https://${GIT_USERNAME}:${GIT_PASSWORD}@$(params.repositoryurl)" deploy-repo && cd "$_"
+
+        yq e '.helm-springboot.image.name = "$(params.imageurl)"' -i values.yaml
+
+        git add values.yaml
+        git commit -m "[AUTO-DEPLOY] Deploy image version $(params.imageurl)"
+        git push
+
+        if [[ $? -eq 0 ]]
+        then
+          echo "Auto deployment triggered"
+          exit 0
+        else
+          echo "Auto deployment failed"
+          exit 1
+        fi

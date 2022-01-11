@@ -1,0 +1,16 @@
+env:
+  open:
+    STORAGE: amazon
+    STORAGE_AMAZON_BUCKET: $TEKTON_DEMO_CHARTMUSEUM_BUCKET
+    STORAGE_AMAZON_PREFIX:
+    STORAGE_AMAZON_REGION: $AWS_REGION
+    AWS_SDK_LOAD_CONFIG: true
+    DISABLE_API: false
+serviceAccount:
+  create: false
+  name: chartmuseum-sa
+securityContext: 
+  enabled: true
+  fsGroup: 65534
+service:
+  type: NodePort

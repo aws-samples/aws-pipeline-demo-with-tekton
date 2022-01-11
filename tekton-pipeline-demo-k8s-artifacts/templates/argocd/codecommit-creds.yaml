@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: codecommit-credentials
+  namespace: argocd
+type: Opaque
+stringData:
+  username: {{ .Values.pipelines.codeRepo.username }}
+  password: {{ .Values.pipelines.codeRepo.passwordRaw }}

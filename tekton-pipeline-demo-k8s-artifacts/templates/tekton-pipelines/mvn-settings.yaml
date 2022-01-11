@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: maven-settings
+  namespace: apps-build
+data:
+  settings.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <settings xmlns="http://maven.apache.org/SETTINGS/1.1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd">
+      <servers>
+        <server>
+          <id>tekton-demo-domain-tekton-demo-repository</id>
+          <username>aws</username>
+          <password>${token}</password>
+        </server>
+      </servers>
+      <mirrors>
+        <mirror>
+          <id>tekton-demo-domain-tekton-demo-repository</id>
+          <name>tekton-demo-domain-tekton-demo-repository</name>
+          <url>https://tekton-demo-domain-{{ .Values.accountId }}.d.codeartifact.{{ .Values.region }}.amazonaws.com/maven/tekton-demo-repository/</url>
+          <mirrorOf>*</mirrorOf>
+        </mirror>
+      </mirrors>
+      <profiles>
+        <profile>
+          <id>tekton-demo-domain-tekton-demo-repository</id>
+          <activation>
+            <activeByDefault>true</activeByDefault>
+          </activation>
+          <repositories>
+            <repository>
+              <id>tekton-demo-domain-tekton-demo-repository</id>
+              <url>https://tekton-demo-domain-{{ .Values.accountId }}.d.codeartifact.{{ .Values.region }}.amazonaws.com/maven/tekton-demo-repository/</url>
+            </repository>
+          </repositories>
+        </profile>
+      </profiles>
+    </settings>

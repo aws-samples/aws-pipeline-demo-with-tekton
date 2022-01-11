@@ -1,0 +1,20 @@
+region: "${AWS_REGION}"
+accountId: "${AWS_ACCOUNT_ID}"
+allowedIpRange: "${MY_IP_ADDRESS}/32"
+chartmuseum:
+  ingress:
+    securityGroup: "${TEKTON_DEMO_CHARTMUSEUM_SG}"
+dashboard:
+  ingress:
+    securityGroup: "${TEKTON_DEMO_DASHBOARD_SG}"
+pipelines:
+  codeRepo:
+    username: "${TEKTON_DEMO_GIT_USERNAME}"
+    password: "${TEKTON_DEMO_GIT_PASSWORD}"
+    passwordRaw: "${TEKTON_DEMO_GIT_PASSWORD_RAW}"
+triggers:
+  ingress:
+    securityGroup: "${TEKTON_DEMO_WEBHOOK_SG}"
+
+
+

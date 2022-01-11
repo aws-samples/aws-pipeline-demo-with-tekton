@@ -1,0 +1,46 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "This cloudformation template creates the buckets required for the Tekton pipeline demo"
+
+Resources:
+  TektonDemoCodeBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      Tags:
+        - Key: project
+          Value: tekton-pipeline-demo
+
+  TektonDemoChartMuseumBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      Tags:
+        - Key: project
+          Value: tekton-pipeline-demo
+
+  TektonDemoServiceAccountChartPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:ListBucket
+            Resource: !Sub "${TektonDemoChartMuseumBucket.Arn}"
+          - Effect: Allow
+            Action:
+              - s3:DeleteObject
+              - s3:GetObject
+              - s3:PutObject
+            Resource: !Sub "${TektonDemoChartMuseumBucket.Arn}/*"
+            
+Outputs:
+  CodeBucket:
+    Description: ""
+    Value: !Ref TektonDemoCodeBucket
+  ChartmuseumBucket:
+    Description: ""
+    Value: !Ref TektonDemoChartMuseumBucket
+  PolicyArnForChartMuseumSa:
+    Description: ""
+    Value: !Ref TektonDemoServiceAccountChartPolicy

@@ -1,0 +1,24 @@
+{{- if .Values.ingress.enabled }}
+{{- $svcName := .Values.app.name }}
+{{- $svcPort := .Values.service.port }}
+{{- $sg := .Values.ingress.sg }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Values.app.name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/group.name: apps
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/tags: Project=tekton-pipeline-demo
+    alb.ingress.kubernetes.io/security-groups: {{ $sg }}
+spec:
+  rules:
+    - http:
+        paths:
+        - path: /*
+          backend:
+            serviceName: {{ $svcName }}
+            servicePort: {{ $svcPort }}            
+{{- end}}

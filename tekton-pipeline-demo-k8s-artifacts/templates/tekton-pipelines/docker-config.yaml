@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: docker-config
+  namespace: apps-build
+data:
+  config.json: |
+    {"credsStore": "ecr-login"}

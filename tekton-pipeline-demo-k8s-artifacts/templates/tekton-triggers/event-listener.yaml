@@ -1,0 +1,16 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: codecommit-listener-interceptor
+  namespace: apps-build
+spec:
+  serviceAccountName: tekton-triggers
+  resources:
+    kubernetesResource:
+      serviceType: NodePort
+  triggers:
+    - name: codecommit-trigger
+      bindings:
+        - ref: codecommit-trigger-binding
+      template:
+        ref: simple-maven-build-template

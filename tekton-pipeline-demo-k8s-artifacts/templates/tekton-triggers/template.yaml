@@ -1,0 +1,37 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: simple-maven-build-template
+  namespace: apps-build
+spec:
+  params:
+  - name: gitrevision
+    description: The git revision
+  - name: gitbranch
+    description: The git revision
+  - name: gitrepositoryname
+    description: The git repository name
+  - name: gitrepositoryregion
+    description: The region of the code commit repository
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      generateName: simple-maven-build-run-
+    spec:
+      serviceAccountName: pipeline-sa
+      pipelineRef:
+        name: simple-maven-build
+      params:
+      - name: revision
+        value: $(tt.params.gitrevision)
+      - name: branch
+        value: $(tt.params.gitbranch)
+      - name: repositoryurl
+        value: git-codecommit.$(tt.params.gitrepositoryregion).amazonaws.com/v1/repos/$(tt.params.gitrepositoryname)
+      workspaces:
+      - name: artifact-store
+        persistentVolumeClaim:
+          claimName: artifact-store
+
+        

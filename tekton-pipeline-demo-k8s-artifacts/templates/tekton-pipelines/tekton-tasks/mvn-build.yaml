@@ -1,0 +1,43 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: maven-build
+  namespace: apps-build
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: GOALS
+      description: maven goals to run
+      type: string
+      default: "deploy"
+    - name: SKIPTESTS
+      description: skip tests
+      type: string
+      default: "true"
+    - name: version
+      description: mvn version
+      type: string
+  steps:
+    - name: fetch-auth-token
+      workingDir: $(workspaces.source.path)
+      image: {{ .Values.accountId }}.dkr.ecr.{{ .Values.region }}.amazonaws.com/maven-builder:latest
+      script: |
+        #!/bin/bash
+        CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain tekton-demo-domain --domain-owner {{ .Values.accountId }} --query authorizationToken --output text)
+        echo $CODEARTIFACT_AUTH_TOKEN > token.txt
+    - name: mvn-build
+      volumeMounts:
+        - name: maven-settings
+          mountPath: $(workspaces.source.path)/settings
+      workingDir: $(workspaces.source.path)
+      image: {{ .Values.accountId }}.dkr.ecr.{{ .Values.region }}.amazonaws.com/maven-builder:latest
+      script: |  
+        #!/bin/bash
+        CODE_ARTIFACT_TOKEN=$(cat token.txt)
+        mvn versions:set -DnewVersion=$(params.version)
+        mvn $(params.GOALS) -s settings/settings.xml -DskipTests=$(params.SKIPTESTS) -Dtoken=${CODE_ARTIFACT_TOKEN}
+  volumes:
+    - name: maven-settings
+      configMap:
+        name: maven-settings

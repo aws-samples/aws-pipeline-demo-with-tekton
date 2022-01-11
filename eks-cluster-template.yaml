@@ -1,0 +1,22 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: tekton-pipeline-demo-cluster
+  region: eu-central-1
+  version: "1.18"
+  tags:
+    project: tekton-pipeline-demo
+
+availabilityZones: ["eu-central-1a", "eu-central-1b", "eu-central-1c"]
+
+managedNodeGroups:
+  - name: worker-ng-1
+    instanceType: m5.large
+    desiredCapacity: 3
+    volumeSize: 80
+    labels:
+      role: workers
+    tags:
+      project: tekton-pipeline-demo
+    

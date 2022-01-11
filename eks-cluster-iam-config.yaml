@@ -1,0 +1,33 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: $EKS_CLUSTER_NAME
+  region: $AWS_REGION
+
+iam:
+  withOIDC: true
+  serviceAccounts:
+    - metadata:
+        name: pipeline-sa
+        namespace: apps-build
+      attachPolicyARNs:
+        - "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
+        - "arn:aws:iam::aws:policy/AWSCodeArtifactAdminAccess"
+    - metadata:
+        name: chartmuseum-sa
+        namespace: support
+      attachPolicyARNs:
+        - $TEKTON_DEMO_CHARTMUSEUM_POLICY
+    - metadata:
+        name: aws-lb-controller-sa
+        namespace: kube-system
+      wellKnownPolicies:
+        awsLoadBalancerController: true
+    - metadata:
+        name: ebs-csi-controller-sa
+        namespace: kube-system
+      wellKnownPolicies:
+        ebsCSIController: true
+
+    

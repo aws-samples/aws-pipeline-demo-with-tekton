@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/group.name: chartmuseum
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/tags: Project=tekton-pipeline-demo
+    alb.ingress.kubernetes.io/security-groups: {{ .Values.chartmuseum.ingress.securityGroup }}
+  name: chartmuseum
+  namespace: support
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: chartmuseum
+          servicePort: 8080
+        path: /*
