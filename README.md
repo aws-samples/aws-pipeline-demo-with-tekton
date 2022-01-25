@@ -1,6 +1,6 @@
 # aws-pipeline-demo-with-tekton
 
-This repository contains the demo resources discussed in the blog post Cloud Native CI/CD with Tekton and ArgoCD on AWS.
+This repository contains the demo resources discussed in the blog post [Cloud Native CI/CD with Tekton and ArgoCD on AWS](https://aws.amazon.com/blogs/containers/cloud-native-ci-cd-with-tekton-and-argocd-on-aws/).
 
 The code provided is for demo purposes only and not ready for production.
 
@@ -49,7 +49,7 @@ If both of the above commands completed successfully please continue with the in
 Clone the repository and run the installation script:
 
 ```console
-$ git clone https://github.com/aws-samples/aws-tekton-pipeline-demo.git
+$ git clone https://github.com/aws-samples/aws-pipeline-demo-with-tekton.git
 $ cd aws-tekton-pipeline-demo
 $ chmod u+x install.sh
 $ ./install.sh
