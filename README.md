@@ -53,7 +53,7 @@ Clone the repository and run the installation script:
 
 ```console
 $ git clone https://github.com/aws-samples/aws-pipeline-demo-with-tekton.git
-$ cd aws-tekton-pipeline-demo
+$ cd aws-pipeline-demo-with-tekton
 $ chmod u+x install.sh
 $ ./install.sh
 ```
