@@ -15,6 +15,9 @@ Please make sure that the following tools are installed and ready to use:
 - [Helm](https://helm.sh/docs/intro/install/)
 - [aws-iam-authenticator](https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html)
 - [jq](https://stedolan.github.io/jq/download/)
+- [Golang](https://go.dev/dl/)
+- [Docker](https://www.docker.com/products/docker-desktop)
+- [envsubst](https://formulae.brew.sh/formula/gettext)
 
 Further we suggest to use a dedicated AWS account.
 The install script should be executed with the credentials of an Admin user.
