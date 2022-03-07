@@ -34,11 +34,11 @@ Next a Kubernetes cluster is required in order to deploy Tekton and other relate
 Please find below the required steps in order to create a cluster (cluster config file can be found in the root folder of the repository):
 
 ```console
-$ eksctl create cluster -f eks-cluster-config.yaml
+$ eksctl create cluster -f eks-cluster-template.yaml
 ```
 
 Please wait until the cluster has been provisioned successfully and you obtained the kubeconfig file.
-You can test the successfull installation by running:
+You can test the successful installation by running:
 
 ```console
 $ eksctl get clusters
@@ -59,7 +59,7 @@ $ ./install.sh
 ```
 Please note that the script requires your public ip address to continue. This ip address will be used to restrict the access to the resources deployed through the script.
 
-The script installs the environment and takes approximately 10 minutes to complete (depends on your internet connectivity). Please keep your Terminal open until everyhting is installed and the output section is displayed.
+The script installs the environment and takes approximately 10 minutes to complete (depends on your internet connectivity). Please keep your Terminal open until everything is installed and the output section is displayed.
 
 ## Uninstall
 
