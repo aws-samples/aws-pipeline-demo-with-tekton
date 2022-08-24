@@ -7,9 +7,9 @@ export TEKTON_TRIGGERS_VERSION="v0.14.2"
 export TEKTON_DASHBOARD_VERSION="v0.18.1"
 export CHARTMUSEUM_VERSION="3.1.0"
 export AWS_LB_CONTROLLER_VERSION="1.2.3"
-export AWS_EBS_CSI_DRIVER_VERSION="0.9.4"
+export AWS_EBS_CSI_DRIVER_VERSION="v1.5.2-eksbuild.1"
 export ARGOCD_VERSION="v2.0.4"
-export EKS_VERSION="1.18"
+export EKS_VERSION="1.23"
 
 # Check for prerequisites
 for tool in aws kubectl eksctl aws-iam-authenticator kubectl helm jq envsubst base64
